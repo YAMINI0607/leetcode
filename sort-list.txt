@@ -1,0 +1,72 @@
+#include <stdlib.h>
+
+struct ListNode* split(struct ListNode* head, int step) {
+    if (!head) return NULL;
+    
+    for (int i = 1; head->next && i < step; i++) {
+        head = head->next;
+    }
+    
+    struct ListNode* rest = head->next;
+    head->next = NULL; 
+    return rest;
+}
+
+struct ListNode* merge(struct ListNode* l1, struct ListNode* l2, struct ListNode** head_ref) {
+    struct ListNode dummy;
+    struct ListNode* current = &dummy;
+    dummy.next = NULL;
+    
+    while (l1 && l2) {
+        if (l1->val <= l2->val) {
+            current->next = l1;
+            l1 = l1->next;
+        } else {
+            current->next = l2;
+            l2 = l2->next;
+        }
+        current = current->next;
+    }
+    
+    current->next = l1 ? l1 : l2;
+    
+    while (current->next) {
+        current = current->next;
+    }
+    
+    *head_ref = dummy.next;
+    return current; 
+}
+
+struct ListNode* sortList(struct ListNode* head) {
+    if (!head || !head->next) return head;
+    
+    int length = 0;
+    struct ListNode* current = head;
+    while (current) {
+        length++;
+        current = current->next;
+    }
+    
+    struct ListNode dummy;
+    dummy.next = head;
+    
+    for (int step = 1; step < length; step *= 2) {
+        struct ListNode* prev_tail = &dummy;
+        struct ListNode* curr = dummy.next;
+        
+        while (curr) {
+            struct ListNode* left = curr;
+            struct ListNode* right = split(left, step);
+            curr = split(right, step); 
+            
+            struct ListNode* merged_head = NULL;
+            struct ListNode* merged_tail = merge(left, right, &merged_head);
+            
+            prev_tail->next = merged_head;
+            prev_tail = merged_tail;
+        }
+    }
+    
+    return dummy.next;
+}
